@@ -3,8 +3,8 @@
   */
 case class Order(location: Point,
                  requestedInventory: Inventory,
-                 deliveredInventory: Inventory) {
+                 var deliveredInventory: Inventory) {
   def isFulfilled: Boolean = requestedInventory == deliveredInventory
 
-  def deliverProducts(productId: Int, amount: Int): Order = copy(deliveredInventory = deliveredInventory.addProducts(productId, amount))
+  def deliverProducts(productId: Int, amount: Int): Unit = deliveredInventory.addProducts(productId, amount)
 }

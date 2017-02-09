@@ -2,7 +2,7 @@
   * Created by Effi on 2/2/2017.
   */
 case class Inventory(catalog: Catalog,
-                     productAmounts: Seq[Int]) {
+                     var productAmounts: Array[Int]) {
   def getNumProducts(productId: Int): Int = productAmounts(productId)
 
   def getWeight: Int = {
@@ -11,8 +11,8 @@ case class Inventory(catalog: Catalog,
     )
   }
 
-  def addProducts(productId: Int, amount: Int): Inventory = {
-    copy(productAmounts = productAmounts.updated(productId, productAmounts(productId) + amount))
+  def addProducts(productId: Int, amount: Int): Unit = {
+    productAmounts(productId) += amount
   }
 
   private def getWeight(numProductsToId: (Int, Int)): Int = {
