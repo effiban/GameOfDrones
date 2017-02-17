@@ -1,10 +1,19 @@
 /**
   * Created by Effi on 2/2/2017.
   */
-case class Warehouse(location: Point,
-                     var inventory: Inventory) {
+case class Warehouse(id: Int,
+                     location: Point,
+                     var totalInventory: Inventory,
+                     var inventoryToBeRemoved: Inventory) {
 
-  def getNumProducts(productId: Int): Int = inventory.getNumProducts(productId)
+  def getNumProducts(productId: Int): Int = totalInventory.getNumProducts(productId)
 
-  def addProducts(productId: Int, amount: Int): Unit = inventory.addProducts(productId, amount)
+  def getAvailableInventoryFrom(inventory: Inventory): Inventory = {
+    (this.totalInventory - this.inventoryToBeRemoved).getAvailableFrom(inventory)
+  }
+
+  def +=(inventory: Inventory): Unit = this.totalInventory += inventory
+  def -=(inventory: Inventory): Unit = this.totalInventory -= inventory
+
+
 }

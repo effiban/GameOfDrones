@@ -1,13 +1,16 @@
-import java.io.{FileReader, FileInputStream}
+import java.io.{FileInputStream, FileReader}
+
+import scala.collection.mutable
 
 /**
  * Created by Ran Nisim on 2/9/2017.
  */
-class Parser {
+object Parser {
+
   def readFile: Array[Array[Int]] = {
     import scala.io.Source
     Source
-      .fromFile("Drones.txt")
+      .fromFile("src/Drones.txt")
       .getLines()
     .map(_.split(" ")).toArray
     .map(_.map(_.toInt).toArray)
@@ -29,27 +32,23 @@ class Parser {
   
   def parserProducts(line: Array[Int]) = Catalog(line)
   
-  def parserWarehouses(locationSeq: Array[Int],
+  def parserWarehouses(id: Int,
+                       locationSeq: Array[Int],
                        productsLine: Array[Int],
-                        cata: Catalog) = {
-    Warehouse(
+                        cata: Catalog): Warehouse = {
+    Warehouse(id,
       Point(locationSeq(0), locationSeq(1)),
-      Inventory(cata, productsLine)
+      Inventory(cata, productsLine),
+      new Inventory(cata)
     )
   }
 
   def parserOrder(locationSeq: Array[Int],
                   productsLine: Array[Int],
-                  cata: Catalog) = {
-    Order(
-      Point(locationSeq(0), locationSeq(1)),
-      Inventory(cata, buildOrderItem),
-      Inventory(cata, Array.fill(productsLine.length)(0))
-    )
-
+                  cata: Catalog): Order = {
     def buildOrderItem = {
       val x = productsLine.groupBy(identity)
-      var y = Array.fill(productsLine.length)(0)
+      var y = Array.fill(cata.productWeights.length)(0)
       x.foreach( entry => {
         y(entry._1) = entry._2.length
       })
@@ -57,9 +56,16 @@ class Parser {
     }
 
 
+    Order(
+      Point(locationSeq(0), locationSeq(1)),
+      Inventory(cata, buildOrderItem),
+      new Inventory(cata),
+      new Inventory(cata)
+    )
+
   }
 
-  def parse(): Unit ={
+  def parse(): Game ={
     var lines = readFile
     val board = parserBoard(lines(0))
     val cata = parserProducts(lines(2))
@@ -74,7 +80,7 @@ class Parser {
       val wareLoc = lines(0)
       val wareItems = lines(1)
       lines = lines.drop(2)
-      parserWarehouses(wareLoc, wareItems, cata)
+      parserWarehouses(idx, wareLoc, wareItems, cata)
     }
     var numOrder = lines(0)(0)
     lines = lines.drop(1)
@@ -89,24 +95,36 @@ class Parser {
 
     var drones = (1 to board.drones).map{
       x =>
-        Drone(
+        Drone(x,
           board.maxWeight,
-          Inventory(cata,Array.fill(cata.productWeights.length)(0)),
-          None,
+          new Inventory(cata),
+          Seq.empty,
           Point(0,0),
           0
         )
     } .toArray
 
     Game(board,
+      cata,
       drones,
-    warehoues.toArray,
-    orders.toArray)
+      warehoues.toArray,
+      orders.toArray)
   }
 
   case class Game(board: Board,
+                  cata: Catalog,
                   drones: Array[Drone],
                    warehoues: Array[Warehouse],
-                   orders: Array[Order])
+                   orders: Array[Order]) {
+
+    val droneCmds = {
+      val mapp = mutable.Map[Drone, Array[Command]]()
+      drones.foreach (
+        d => mapp + (d -> Array.empty[Command])
+      )
+      mapp
+    }
+
+  }
 }
 
